@@ -1,6 +1,7 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { auth } from '../firebase';
 import { useStoreContext } from '../context/Context';
 import { Map } from 'immutable';
 import './SignUpView.css';
@@ -14,50 +15,34 @@ function SignUpView() {
   const [confirmPass, setConfirmPass] = useState('');
   const [selectedGenres, setSelectedGenres] = useState([]);
 
-  const { setEmail, setPass, setFirstName, setLastName, setGenres, setCart } = useStoreContext();
+  const { setUser, setCart } = useStoreContext();
 
-  const genres = [
-    { id: 28, name: 'Action' },
-    { id: 80, name: 'Crime' },
-    { id: 27, name: 'Horror' },
-    { id: 53, name: 'Thriller' },
-    { id: 12, name: 'Adventure' },
-    { id: 10751, name: 'Family' },
-    { id: 10402, name: 'Music' },
-    { id: 10752, name: 'War' },
-    { id: 16, name: 'Animation' },
-    { id: 14, name: 'Fantasy' },
-    { id: 9648, name: 'Mystery' },
-    { id: 37, name: 'Western' },
-    { id: 35, name: 'Comedy' },
-    { id: 36, name: 'History' },
-    { id: 878, name: 'Sci-Fi' },
-  ];
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (passInput !== confirmPass) {
+      alert("Passwords do not match!");
+      return;
+    }
 
-  const handleGenreClick = (id, name) => {
-    if (selectedGenres.some((genre) => genre.id === id)) {
-      setSelectedGenres(selectedGenres.filter((genre) => genre.id !== id));
-    } else {
-      setSelectedGenres([...selectedGenres, { id, name }]);
+    try {
+      const user = (await createUserWithEmailAndPassword(auth, emailInput, passInput)).user;
+      await updateProfile(user, { displayName: `${firstNameInput} ${lastNameInput}` });
+      setUser(user);
+      setCart(Map());
+      navigate('/movies/all');
+    } catch (error) {
+      alert("Error creating user with email and password!");
     }
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-
-    if (passInput !== confirmPass) {
-      alert("Password Don't Match");
-    } else if (selectedGenres.length < 10) {
-      alert("Select at least 10 genres");
-    } else {
-      setEmail(emailInput);
-      setPass(passInput);
-      setFirstName(firstNameInput);
-      setLastName(lastNameInput);
-      setGenres(selectedGenres);
+  const registerByGoogle = async () => {
+    try {
+      const user = (await signInWithPopup(auth, new GoogleAuthProvider())).user;
+      setUser(user);
       setCart(Map());
-
-      navigate('/signin');
+      navigate('/movies');
+    } catch {
+      alert("Error creating user with Google!");
     }
   };
 
@@ -84,32 +69,15 @@ function SignUpView() {
               <label>Password</label>
             </div>
             <div className="info">
-              <input type="password" name="confirmPassword" onChange={(e) => setConfirmPass(e.target.value)} required />
+              <input type="password" name="confirm-password" onChange={(e) => setConfirmPass(e.target.value)} required />
               <label>Confirm Password</label>
             </div>
-
-            <div className="genre-select-container">
-              <h3>Select Your Favorite Genres</h3>
-              <div className="genres-grid">
-                {genres.map((genre) => (
-                  <button
-                    key={genre.id}
-                    type="button"
-                    className={`genre-select-button ${selectedGenres.some(selected => selected.id === genre.id) ? 'selected' : ''}`}
-                    onClick={() => handleGenreClick(genre.id, genre.name)}
-                  >
-                    {genre.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button className="sign-up-btn" type="submit">Sign Up</button>
-            <div className="help">
-              <Link to="#">Need help?</Link>
-            </div>
+            <button type="submit" className="register-button">Sign Up</button>
           </form>
-          <p>Already Have An Aginflix Account? <Link to="/signin">Sign In</Link></p>
+          <p className="login-link">
+            Already have an account? <Link to="/signin">Login</Link>
+          </p>
+          <button onClick={registerByGoogle} className="register-button">Register by Google</button>
         </div>
       </div>
     </div>
