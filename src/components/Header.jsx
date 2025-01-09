@@ -7,7 +7,7 @@ function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const isActive = (path) => location.pathname === path;
-  const { signedIn, setSignedIn, firstName, lastName } = useStoreContext();
+  const { user, firstName, lastName } = useStoreContext();
 
   return (
     <div className="navbar">
@@ -32,7 +32,7 @@ function Header() {
           </ul>
         </div>
 
-        {signedIn ? (
+        {user ? (
           <>
             <div className="welcome-container">
               <p>Welcome, {firstName} {lastName}</p>
@@ -52,7 +52,7 @@ function Header() {
           </form>
         </div>
 
-        {signedIn ? (
+        {user ? (
           <>
             <div className="sign-in-container">
               <div className="sign-in-button-container">

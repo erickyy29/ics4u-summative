@@ -13,14 +13,14 @@ function SignUpView() {
   const [emailInput, setEmailInput] = useState('');
   const [passInput, setPassInput] = useState('');
   const [confirmPass, setConfirmPass] = useState('');
-  const [selectedGenres, setSelectedGenres] = useState([]);
+  const [error, setError] = useState(null);
 
   const { setUser, setCart } = useStoreContext();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (passInput !== confirmPass) {
-      alert("Passwords do not match!");
+      setError("Passwords do not match!");
       return;
     }
 
@@ -29,20 +29,26 @@ function SignUpView() {
       await updateProfile(user, { displayName: `${firstNameInput} ${lastNameInput}` });
       setUser(user);
       setCart(Map());
-      navigate('/movies/all');
+      navigate('/movies');
     } catch (error) {
-      alert("Error creating user with email and password!");
+      if (error.code === 'auth/email-already-in-use') {
+        setError("This email is already in use. Please use a different email.");
+      } else {
+        setError("Error creating user with email and password!");
+      }
     }
   };
 
   const registerByGoogle = async () => {
     try {
-      const user = (await signInWithPopup(auth, new GoogleAuthProvider())).user;
+      const result = await signInWithPopup(auth, new GoogleAuthProvider());
+      const user = result.user;
       setUser(user);
       setCart(Map());
       navigate('/movies');
-    } catch {
-      alert("Error creating user with Google!");
+      console.log("navifatre /movies");
+    } catch (error) {
+      setError("Error creating user with Google!");
     }
   };
 
@@ -51,6 +57,7 @@ function SignUpView() {
       <div className="sign-up-page">
         <div className="sign-up">
           <h2>SIGN UP</h2>
+          {error && <p className="error-message">{error}</p>}
           <form onSubmit={handleSubmit}>
             <div className="info">
               <input type="text" name="first" onChange={(e) => setFirstNameInput(e.target.value)} required />

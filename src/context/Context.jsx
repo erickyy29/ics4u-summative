@@ -9,6 +9,7 @@ export const StoreProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState(Map());
   const [loading, setLoading] = useState(true);
+  const [ genres, setGenres ] = useState([]);
 
   useEffect(() => {
     onAuthStateChanged(auth, user => {
@@ -28,7 +29,7 @@ export const StoreProvider = ({ children }) => {
   }
 
   return (
-    <StoreContext.Provider value={{ user, setUser, cart, setCart }}>
+    <StoreContext.Provider value={{ user, setUser, cart, setCart, genres, setGenres }}>
       {children}
     </StoreContext.Provider>
   );
